@@ -1,0 +1,31 @@
+{
+    "monitor": {
+        "top": 0,
+        "left": 0,
+        "width": 1920,
+        "height": 1080
+    },
+    "roi_vertices": [
+        [0, 1080],
+        [960, 600],
+        [1920, 1080]
+    ],
+    "hough_transform": {
+        "rho": 1,
+        "theta": 0.0174533,
+        "threshold": 30,
+        "min_line_length": 50,
+        "max_line_gap": 20
+    },
+    "steering": {
+        "deviation_threshold": 50,
+        "steering_duration": 0.05
+    },
+    "logging": {
+        "level": "INFO"
+    },
+    "general": {
+        "frame_delay": 0.03,
+        "debug_mode": false
+    }
+}
