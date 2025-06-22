@@ -1,14 +1,14 @@
 {
     "monitor": {
-        "top": 0,
-        "left": 0,
-        "width": 1920,
-        "height": 1080
+        "top": 900,
+        "left": 20,
+        "width": 280,
+        "height": 200
     },
     "roi_vertices": [
-        [0, 1080],
-        [960, 600],
-        [1920, 1080]
+        [0, 270],
+        [0, 0],
+        [480, 270]
     ],
     "hough_transform": {
         "rho": 1,
@@ -19,7 +19,8 @@
     },
     "steering": {
         "deviation_threshold": 50,
-        "steering_duration": 0.05
+        "steering_duration": 0.05,
+        "max_steering_angle": 45
     },
     "logging": {
         "level": "INFO"

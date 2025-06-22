@@ -14,14 +14,28 @@ class ImageProcessor:
         
     def preprocess(self, frame):
         """Preprocess image for lane detection: grayscale conversion, Gaussian blur, and Canny edge detection"""
-        # Convert to grayscale
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        
         # Apply Gaussian blur to reduce noise
-        blur = cv2.GaussianBlur(gray, (5, 5), 0)
+        blur = cv2.GaussianBlur(frame, (5, 5), 0)
         
-        # Canny edge detection
-        edges = cv2.Canny(blur, 50, 150)
+        # Convert to HSV color space for color isolation
+        hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV)
+        
+        # Define color ranges in HSV
+        # Purple channel
+        lower_purple = np.array([125, 50, 50])
+        upper_purple = np.array([150, 255, 255])
+        purple_mask = cv2.inRange(hsv, lower_purple, upper_purple)
+        
+        # Black channel (low value)
+        lower_black = np.array([0, 0, 0])
+        upper_black = np.array([180, 255, 50])
+        black_mask = cv2.inRange(hsv, lower_black, upper_black)
+        
+        # Combine masks and set as arrow mask
+        self.arrow_mask = cv2.bitwise_or(purple_mask, black_mask)
+        
+        # Apply Canny edge detection on combined mask
+        edges = cv2.Canny(self.arrow_mask, 50, 150)
         self.logger.debug("Image preprocessing completed")
         
         return edges
@@ -93,11 +107,55 @@ class ImageProcessor:
         
         return lane_center
     
+    def detect_arrow_direction(self):
+        """Detect arrow direction using contour analysis and shape matching"""
+        contours, _ = cv2.findContours(self.arrow_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if contours:
+            # Find largest contour (assumed to be the arrow)
+            largest_contour = max(contours, key=cv2.contourArea)
+            if cv2.contourArea(largest_contour) > 100:
+                # Get bounding rectangle and aspect ratio
+                x, y, w, h = cv2.boundingRect(largest_contour)
+                aspect_ratio = float(w) / h
+                
+                # Calculate contour moments for centroid
+                M = cv2.moments(largest_contour)
+                if M['m00'] > 0:
+                    cx = int(M['m10'] / M['m00'])
+                    cy = int(M['m01'] / M['m00'])
+                    
+                    # Simple direction classification based on contour shape
+                    if aspect_ratio > 1.2:
+                        direction = 'straight'
+                    else:
+                        # Check contour orientation using extreme points
+                        leftmost = tuple(largest_contour[largest_contour[:, :, 0].argmin()][0])
+                        rightmost = tuple(largest_contour[largest_contour[:, :, 0].argmax()][0])
+                        topmost = tuple(largest_contour[largest_contour[:, :, 1].argmin()][0])
+                        bottommost = tuple(largest_contour[largest_contour[:, :, 1].argmax()][0])
+                        
+                        # Determine arrow direction based on point positions
+                        if (rightmost[0] - leftmost[0]) > (bottommost[1] - topmost[1]):
+                            direction = 'straight'
+                        # Only detect left, right and straight directions relative to purple route
+                        if leftmost[0] < cx - w/4:
+                            direction = 'left'
+                        elif rightmost[0] > cx + w/4:
+                            direction = 'right'
+                        else:
+                            direction = 'straight'
+                    
+                    self.logger.debug(f"Detected arrow at ({cx}, {cy}) with direction: {direction}")
+                    return (cx, cy, direction)
+        self.logger.warning("No arrow detected")
+        return None
+
     def process(self, frame):
         """Complete image processing pipeline: preprocessing -> ROI -> lane detection -> center calculation"""
         edges = self.preprocess(frame)
         roi_edges = self.apply_roi(edges)
         lines = self.detect_lanes(roi_edges)
         lane_center = self.calculate_lane_center(lines, frame.shape[1])
+        arrow_info = self.detect_arrow_direction()
         
-        return edges, lines, lane_center
+        return edges, lines, lane_center, arrow_info

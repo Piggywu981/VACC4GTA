@@ -58,13 +58,14 @@ class GTAAutoDrive:
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
                     
                     # Process image
-                    edges, lines, lane_center = self.image_processor.process(frame)
+                    edges, lines, lane_center, arrow_info = self.image_processor.process(frame)
                     
                     # Apply vehicle controls
-                    self.vehicle_controller.apply_controls(lane_center, frame.shape[1])
+                    self.vehicle_controller.apply_controls(lane_center, arrow_info, frame.shape[1])
                     
                     # Display processed image
-                    cv2.imshow('Processed Frame', edges)
+                    cv2.imshow('Processed Frame', frame)
+                    cv2.setWindowProperty('Processed Frame', cv2.WND_PROP_TOPMOST, 1)
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         self.stop()
                         break
