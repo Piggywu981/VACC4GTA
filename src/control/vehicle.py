@@ -13,23 +13,27 @@ class VehicleController:
         
     def accelerate(self):
         """Simulate pressing the acceleration key (W)"""
+        self.logger.debug("Pressing 'W' key to accelerate")
         self.keyboard.press('w')
         time.sleep(0.1)
         self.keyboard.release('w')
+        self.logger.debug("Released 'W' key after acceleration")
         
     def turn_left(self):
         """Simulate pressing the left turn key (A)"""
+        self.logger.debug(f"Pressing 'A' key to turn left for {self.steering_duration} seconds")
         self.keyboard.press('a')
         time.sleep(self.steering_duration)
         self.keyboard.release('a')
-        self.logger.debug(f"Turned left for {self.steering_duration} seconds")
+        self.logger.debug(f"Released 'A' key after left turn")
         
     def turn_right(self):
         """Simulate pressing the right turn key (D)"""
+        self.logger.debug(f"Pressing 'D' key to turn right for {self.steering_duration} seconds")
         self.keyboard.press('d')
         time.sleep(self.steering_duration)
         self.keyboard.release('d')
-        self.logger.debug(f"Turned right for {self.steering_duration} seconds")
+        self.logger.debug(f"Released 'D' key after right turn")
         
     def apply_controls(self, lane_center, image_width):
         """Apply steering controls based on lane center deviation"""
@@ -50,9 +54,9 @@ class VehicleController:
         
     def stop(self):
         """Stop vehicle movement"""
-        # In case of emergency stop, we could add brake logic here
-        self.logger.info("Vehicle control stopped")
+        self.logger.debug("Pressing 'S' key to stop vehicle")
         self.keyboard.press('s')
         time.sleep(0.5)
         self.keyboard.release('s')
-        self.logger.info("Vehicle stopped")
+        self.logger.debug("Released 'S' key after stopping")
+        self.logger.info("Vehicle control stopped")
